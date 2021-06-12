@@ -1,0 +1,12 @@
+*.form
+*.class
+
+.gradle/
+.idea/
+out/
+
+.classpath
+.project
+
+*.jpg
+*.txt
