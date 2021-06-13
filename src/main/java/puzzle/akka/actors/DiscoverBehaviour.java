@@ -16,12 +16,12 @@ public class DiscoverBehaviour extends AbstractBehavior<BaseMessage> {
     private final static String SYSTEM = "akka://GameSystem@";
     private final static String PATH = "/user/discover-actor";
     private final ActorRef<BaseMessage> parent;
-    private ActorRef<BaseGameMessage> gameActor;
-    private String imagePath;
+    private final ActorRef<BaseGameMessage> gameActor;
 
     private DiscoverBehaviour(ActorContext<BaseMessage> context, ActorRef<BaseMessage> parent) {
         super(context);
         this.parent = parent;
+        this.gameActor = getContext().spawn(GameBehaviour.create(), "game-actor");
     }
 
     public static Behavior<BaseMessage> create(ActorRef<BaseMessage> parent) {
@@ -31,35 +31,34 @@ public class DiscoverBehaviour extends AbstractBehavior<BaseMessage> {
     @Override
     public Receive<BaseMessage> createReceive() {
         return newReceiveBuilder()
+                .onMessage(CreateNewGameMessage.class, this::onCreateNewGameMessage)
+                .onMessage(JoinGameMessage.class, this::onJoinGameMessage)
                 .onMessage(JoinRequestMessage.class, this::onJoinRequestMessage)
                 .onMessage(JoinResponseMessage.class, this::onJoinResponseMessage)
-                .onMessage(JoinGameMessage.class, this::onJoinGameMessage)
                 .build();
     }
 
+    private Behavior<BaseMessage> onCreateNewGameMessage(CreateNewGameMessage createNewGameMessage) {
+        this.gameActor.tell(new NewGameDataMessage(createNewGameMessage.getRows(), createNewGameMessage.getColumns(), createNewGameMessage.getImagePath()));
+        Cluster cluster = Cluster.get(getContext().getSystem());
+        cluster.manager().tell(Join.create(cluster.selfMember().address()));
+        return Behaviors.same();
+    }
+
     private Behavior<BaseMessage> onJoinGameMessage(JoinGameMessage joinGameMessage) {
-        if (joinGameMessage.getPort() != 0) {
-            this.imagePath = joinGameMessage.getImagePath();
-            ActorSelection selection = getContext().classicActorContext().actorSelection(SYSTEM + joinGameMessage.getIpAddress() + ":" + joinGameMessage.getPort() + PATH);
-            selection.tell(new JoinRequestMessage(getContext().getSelf()), akka.actor.ActorRef.noSender());
-        } else {
-            this.gameActor = getContext().spawn(GameBehaviour.create(), "game-actor");
-            this.gameActor.tell(new NewGameDataMessage(joinGameMessage.getRows(), joinGameMessage.getColumns(), joinGameMessage.getImagePath()));
-            Cluster cluster = Cluster.get(getContext().getSystem());
-            cluster.manager().tell(Join.create(cluster.selfMember().address()));
-        }
+        ActorSelection selection = getContext().classicActorContext().actorSelection(SYSTEM + joinGameMessage.getIpAddress() + ":" + joinGameMessage.getPort() + PATH);
+        selection.tell(new JoinRequestMessage(this.gameActor, joinGameMessage.getImagePath(), getContext().getSelf()), akka.actor.ActorRef.noSender());
         return Behaviors.same();
     }
 
     private Behavior<BaseMessage> onJoinRequestMessage(JoinRequestMessage joinRequestMessage) {
-        joinRequestMessage.getDiscoverActor().tell(new JoinResponseMessage(this.parent, this.gameActor));
+        joinRequestMessage.getDiscover().tell(new JoinResponseMessage(this.parent));
+        this.gameActor.tell(joinRequestMessage);
         return Behaviors.same();
     }
 
     private Behavior<BaseMessage> onJoinResponseMessage(JoinResponseMessage joinResponseMessage) {
-        this.gameActor = getContext().spawn(GameBehaviour.create(), "game-actor");
         Cluster.get(getContext().getSystem()).manager().tell(Join.create(joinResponseMessage.getDiscoverActor().path().address()));
-        this.gameActor.tell(new GameDataInformMessage(joinResponseMessage.getGameActor(), this.imagePath));
         return Behaviors.same();
     }
 }

@@ -10,16 +10,14 @@ public class JoinGameDataMessage extends GameDataMessage {
     private List<TileInfoMessage> tiles = new ArrayList<>();
     private Map<String, TileInfoMessage> selectedTiles = new HashMap<>();
     private Map<String, String> players;
-    private String player;
 
     public JoinGameDataMessage() { }
 
-    public JoinGameDataMessage(int rows, int columns, String imagePath, List<TileInfoMessage> tiles, Map<String, TileInfoMessage> selectedTiles, Map<String, String> players, String player) {
+    public JoinGameDataMessage(int rows, int columns, String imagePath, List<TileInfoMessage> tiles, Map<String, TileInfoMessage> selectedTiles, Map<String, String> players) {
         super(rows, columns, imagePath);
         this.tiles = tiles;
         this.selectedTiles = selectedTiles;
         this.players = players;
-        this.player = player;
     }
 
     public void setTiles(List<TileInfoMessage> tiles) {
@@ -28,14 +26,6 @@ public class JoinGameDataMessage extends GameDataMessage {
 
     public List<TileInfoMessage> getTiles() {
         return this.tiles;
-    }
-
-    public String getPlayer() {
-        return this.player;
-    }
-
-    public void setPlayer(String player) {
-        this.player = player;
     }
 
     public Map<String, String> getPlayers() {

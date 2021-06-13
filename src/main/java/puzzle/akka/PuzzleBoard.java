@@ -91,19 +91,17 @@ public class PuzzleBoard extends JFrame {
         paintPuzzle();
     }
 
-    public PuzzleBoard(final int rows, final int columns, final String imagePath, final int port, final GameBehaviour gameBehaviour, final List<TileInfoMessage> tiles, Map<String, TileInfoMessage> selectedTiles, final String myNickname) {
+    public PuzzleBoard(final int rows, final int columns, final String imagePath, final int port, final GameBehaviour gameBehaviour, final List<TileInfoMessage> tiles, Map<String, TileInfoMessage> selectedTiles, final Set<String> players, final String myNickname) {
         this(rows, columns, imagePath, gameBehaviour, myNickname);
         setTitle("Puzzle " + port);
 
         this.tiles.addAll(tiles.stream().map(this::createTileFromMessage).collect(Collectors.toList()));
 
-        System.out.println(this.tiles);
-
         this.selectionManager.setSelectedTiles(selectedTiles.entrySet().stream()
                 .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), this.tiles.get(entry.getValue().getCurrentPosition())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
-        selectedTiles.keySet().forEach(player -> this.colors.put(player, this.colorsList.get(this.colorCounter++ % this.colorsList.size())));
+        players.forEach(player -> this.colors.put(player, this.colorsList.get(this.colorCounter++ % this.colorsList.size())));
 
         paintPuzzle();
     }

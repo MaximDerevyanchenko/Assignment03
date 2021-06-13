@@ -37,7 +37,7 @@ public class RootBehaviour extends AbstractBehavior<BaseMessage> {
     }
 
     private Behavior<BaseMessage> onNewGame(CreateNewGameMessage newGame) {
-        this.discoverActor.tell(new JoinGameMessage(newGame.getImagePath(), newGame.getRows(), newGame.getColumns()));
+        this.discoverActor.tell(newGame);
         return Behaviors.same();
     }
 

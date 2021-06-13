@@ -5,15 +5,8 @@ public class JoinGameMessage implements BaseGameMessage {
     private String imagePath;
     private String ipAddress;
     private int port;
-    private int rows, columns;
 
     public JoinGameMessage() { }
-
-    public JoinGameMessage(final String imagePath, int rows, int columns) {
-        this.imagePath = imagePath;
-        this.rows = rows;
-        this.columns = columns;
-    }
 
     public JoinGameMessage(final String imagePath, final String ipAddress, final int port){
         this.imagePath = imagePath;
@@ -43,21 +36,5 @@ public class JoinGameMessage implements BaseGameMessage {
 
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
-    }
-
-    public int getRows() {
-        return this.rows;
-    }
-
-    public void setRows(int rows) {
-        this.rows = rows;
-    }
-
-    public int getColumns() {
-        return this.columns;
-    }
-
-    public void setColumns(int columns) {
-        this.columns = columns;
     }
 }
