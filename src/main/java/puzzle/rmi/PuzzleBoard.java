@@ -1,6 +1,6 @@
 package puzzle.rmi;
 
-import puzzle.rmi.services.interfaces.GameService;
+import puzzle.rmi.services.GameService;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 
 public class PuzzleBoard extends JFrame {
 
-    private static final int THICKNESS = 1;
+    private static final int THICKNESS = 3;
     private final int rows;
     private final int columns;
     private final List<Tile> tiles = new ArrayList<>();
@@ -89,7 +89,7 @@ public class PuzzleBoard extends JFrame {
         paintPuzzle();
     }
 
-    public PuzzleBoard(final int rows, final int columns, final String imagePath, final int port, final List<Tile> tiles, Map<String, Tile> selectedTiles, final String myNickname, final GameService gameService) {
+    public PuzzleBoard(final int rows, final int columns, final String imagePath, final int port, final List<Tile> tiles, Map<String, Tile> selectedTiles, final String myNickname, final GameService gameService, final Collection<String> players) {
         this(rows, columns, imagePath, myNickname, gameService);
         setTitle("Puzzle " + port);
 
@@ -99,7 +99,7 @@ public class PuzzleBoard extends JFrame {
                 .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), this.tiles.get(entry.getValue().getCurrentPosition())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
-        selectedTiles.keySet().forEach(player -> this.colors.put(player, this.colorsList.get(this.colorCounter++ % this.colorsList.size())));
+        players.forEach(player -> this.colors.put(player, this.colorsList.get(this.colorCounter++ % this.colorsList.size())));
 
         paintPuzzle();
     }
@@ -123,14 +123,6 @@ public class PuzzleBoard extends JFrame {
 
     public void cancelLock() {
         this.mySelectedTile = Optional.empty();
-    }
-
-    public int getRows() {
-        return this.rows;
-    }
-
-    public int getColumns() {
-        return this.columns;
     }
 
     public List<Tile> getTiles() {
@@ -179,12 +171,9 @@ public class PuzzleBoard extends JFrame {
                     btn.setBorder(BorderFactory.createLineBorder(Color.red, THICKNESS));
                 }
                 this.mySelectedTile = Optional.of(tile);
-                // TODO selezionare localemnete
                 try {
                     this.gameService.notifyTileSelected(tile.getCurrentPosition());
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+                } catch (RemoteException ignored) { }
             });
         });
         pack();

@@ -1,8 +1,7 @@
-package puzzle.rmi.services.interfaces;
+package puzzle.rmi.services;
 
 import puzzle.rmi.Tile;
 
-import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -14,15 +13,11 @@ public interface GameService extends Remote {
 
     void joinGame(String imagePath, String host, int joinPort, int myPort) throws RemoteException;
 
-    void notifyPlayerJoined(GameService gameService) throws RemoteException;
-
     void playerJoined(GameService gameService) throws RemoteException;
-
-    void  notifyPlayerLeft(GameService gameService) throws RemoteException;
 
     void playerLeft(GameService gameService) throws RemoteException;
 
-    Map<GameService> getCurrentPlayers() throws RemoteException;
+    Map<GameService, String> getCurrentPlayers() throws RemoteException;
 
     int getRows() throws RemoteException;
 

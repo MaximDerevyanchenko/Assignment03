@@ -1,7 +1,7 @@
 package puzzle.rmi;
 
 import puzzle.rmi.services.GameServiceImpl;
-import puzzle.rmi.services.interfaces.GameService;
+import puzzle.rmi.services.GameService;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -44,16 +44,24 @@ public class StartGame extends JFrame {
                 if (gameService != null)
                     gameService.startNewGame(this.file.getPath(), Integer.parseInt(this.rows.getText()), Integer.parseInt(this.columns.getText()), Integer.parseInt(myPort.getText()));
             } catch (RemoteException remoteException) {
-                remoteException.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Port already in use", "Port Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         this.joinGame.addActionListener(e -> {
             try {
+                if (this.portField.getText().equals("")){
+                    JOptionPane.showMessageDialog(this, "Insert join port.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (this.myPort.getText().equals(this.portField.getText())){
+                    JOptionPane.showMessageDialog(this, "Your port and join port must be different.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 GameService gameService = this.createGameService();
                 if (gameService != null)
                     gameService.joinGame(this.file.getPath(), this.ipAddress.getText(), Integer.parseInt(this.portField.getText()), Integer.parseInt(myPort.getText()));
             } catch (RemoteException remoteException) {
-                remoteException.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Port already in use", "Port Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -65,16 +73,21 @@ public class StartGame extends JFrame {
     }
 
     private GameService createGameService() throws RemoteException {
-        if (this.file != null) {
-            GameService gameService = new GameServiceImpl();
-            Registry registry = LocateRegistry.createRegistry(Integer.parseInt(myPort.getText()));
-            GameService gameServiceStub = (GameService) UnicastRemoteObject.exportObject(gameService, 0);
-            registry.rebind(myPort.getText(), gameServiceStub);
-            super.dispose();
-            return gameService;
+        if (this.file == null){
+            JOptionPane.showMessageDialog(this, "File does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
+            return null;
         }
-        JOptionPane.showMessageDialog(this, "File does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
-        return null;
+        if (this.myPort.getText().equals("")){
+            JOptionPane.showMessageDialog(this, "Insert your port.", "Error", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+
+        GameService gameService = new GameServiceImpl();
+        Registry registry = LocateRegistry.createRegistry(Integer.parseInt(myPort.getText()));
+        GameService gameServiceStub = (GameService) UnicastRemoteObject.exportObject(gameService, Integer.parseInt(myPort.getText()));
+        registry.rebind(myPort.getText(), gameServiceStub);
+        super.dispose();
+        return gameService;
     }
 
     {
