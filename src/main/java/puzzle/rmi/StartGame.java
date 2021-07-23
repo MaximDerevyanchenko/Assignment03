@@ -1,8 +1,5 @@
 package puzzle.rmi;
 
-import puzzle.rmi.services.GameServiceImpl;
-import puzzle.rmi.services.GameService;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -84,7 +81,7 @@ public class StartGame extends JFrame {
 
         GameService gameService = new GameServiceImpl();
         Registry registry = LocateRegistry.createRegistry(Integer.parseInt(myPort.getText()));
-        GameService gameServiceStub = (GameService) UnicastRemoteObject.exportObject(gameService, Integer.parseInt(myPort.getText()));
+        GameService gameServiceStub = (GameService) UnicastRemoteObject.exportObject(gameService, 0);
         registry.rebind(myPort.getText(), gameServiceStub);
         super.dispose();
         return gameService;

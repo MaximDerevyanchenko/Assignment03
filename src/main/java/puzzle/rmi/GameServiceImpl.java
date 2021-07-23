@@ -1,11 +1,6 @@
-package puzzle.rmi.services;
-
-import puzzle.rmi.PuzzleBoard;
-import puzzle.rmi.Tile;
+package puzzle.rmi;
 
 import javax.swing.*;
-import java.net.MalformedURLException;
-import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -127,24 +122,50 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void notifyTileSelected(int currentPosition) {
-        try {
-            this.selectTile(this.player, currentPosition);
-            new Thread(() -> {
-                    final List<GameService> others = new ArrayList<>(this.otherPlayersBoards.keySet());
-                    for (GameService gameService : others) {
-                        try {
-                            gameService.selectTile(this.player, currentPosition);
-                        } catch (RemoteException e) {
-                            try {
-                                this.playerLeft(gameService);
-                                for (GameService otherGameService : this.otherPlayersBoards.keySet())
-                                    otherGameService.playerLeft(gameService);
-                            } catch (RemoteException ignored) { }
-                        }
+    public void notifyTileSelected(int currentPosition) throws RemoteException {
+        this.selectTile(this.player, currentPosition);
+        final List<GameService> others = new ArrayList<>(this.otherPlayersBoards.keySet());
+        for (GameService gameService : others) {
+            try {
+                gameService.selectTile(this.player, currentPosition);
+            } catch (RemoteException e) {
+                try {
+                    this.playerLeft(gameService);
+                    for (GameService otherGameService : this.otherPlayersBoards.keySet())
+                        otherGameService.playerLeft(gameService);
+                } catch (RemoteException ignored) { }
+            }
+        }
+    }
+
+    @Override
+    public void handleLock(int currentPosition) throws RemoteException {
+        new Thread(() -> {
+            boolean canLock = true;
+            for (GameService gameService : this.otherPlayersBoards.keySet())
+                try {
+                    canLock = canLock && gameService.canLock(currentPosition);
+                } catch (RemoteException e) {
+                    try {
+                        this.playerLeft(gameService);
+                        for (GameService otherGameService : this.otherPlayersBoards.keySet())
+                            otherGameService.playerLeft(gameService);
+                    } catch (RemoteException ignored) {
                     }
-            }).start();
-        } catch (RemoteException ignored){ }
+                }
+            if (canLock) {
+                try {
+                    this.notifyTileSelected(currentPosition);
+                } catch (RemoteException ignored) { }
+            }
+            else
+                this.game.cancelLock();
+        }).start();
+    }
+
+    @Override
+    public boolean canLock(int currentPosition) throws RemoteException {
+        return this.game.canLockTile(this.player, currentPosition);
     }
 
     @Override

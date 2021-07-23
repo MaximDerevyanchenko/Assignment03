@@ -1,6 +1,4 @@
-package puzzle.rmi.services;
-
-import puzzle.rmi.Tile;
+package puzzle.rmi;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -30,6 +28,10 @@ public interface GameService extends Remote {
     String getPlayer() throws RemoteException;
 
     void notifyTileSelected(int currentPosition) throws RemoteException;
+
+    void handleLock(int currentPosition) throws RemoteException;
+
+    boolean canLock(int currentPosition) throws RemoteException;
 
     void selectTile(String player, int currentPosition) throws RemoteException;
 }

@@ -1,7 +1,5 @@
 package puzzle.rmi;
 
-import puzzle.rmi.services.GameService;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -172,7 +170,7 @@ public class PuzzleBoard extends JFrame {
                 }
                 this.mySelectedTile = Optional.of(tile);
                 try {
-                    this.gameService.notifyTileSelected(tile.getCurrentPosition());
+                    this.gameService.handleLock(tile.getCurrentPosition());
                 } catch (RemoteException ignored) { }
             });
         });
